@@ -6,7 +6,7 @@ class TextOutputFormatter:
         self.resume=resume
         self.lower=resume.lower()
         self.keywords=keywords
-        self.output=""
+        self.output=resume
 
     def prettify(self):
         """Looking for keywords in text, in particular abstract, return the start idx"""

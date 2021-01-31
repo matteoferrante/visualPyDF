@@ -9,6 +9,7 @@ from pdfminer3.layout import LAParams, LTTextBox, LTTextLine
 from pdfminer3.converter import TextConverter
 from pdfminer3.pdfpage import PDFPage
 from io import StringIO
+from random import randint
 #regular expression
 import re
 # images handling
@@ -215,6 +216,7 @@ class PDFExtractor:
 
         result = None
         lt_image=self.images[idx]
+        file_name=f"{randint(0,1000)}"
         if lt_image.stream:
             file_stream = lt_image.stream.get_rawdata()
         file_ext = self.determine_image_type(file_stream[0:4])

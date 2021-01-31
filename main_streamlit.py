@@ -33,7 +33,7 @@ def work_on_text(t,output,algorhitm="td_idf",overmean=1.25):
 
 
 
-def extract_and_save(file,state):
+def extract_and_save(file,state,method,over_mean):
     p = PDFExtractor(file)
 
     [t, d] = p.extract_fine()
@@ -41,7 +41,8 @@ def extract_and_save(file,state):
     state.t = t
     state.d = d
 
-    s,fig,wordcloud = work_on_text(t, img_dir)
+    s,fig,wordcloud = work_on_text(t, img_dir,method,overmean=over_mean)
+    st.info(f"[INFO] Parameter: {over_mean} \t Algorithm: {method}")
     state.s = s
     state.p = p
     state.freq=fig
@@ -65,12 +66,16 @@ last_run=state.last_run
 
 #init last run
 if last_run is None:
-    last_run=0
+    state.last_run=0
+
+over_mean=st.sidebar.slider("OverMean Parameter (Higher is Shorter)",min_value=0, max_value=200,value=25)
+algo=st.sidebar.selectbox("Algorithm",("td_idf","abstractive"))
 
 if file is not None:
 
     if run_btn:
-        extract_and_save(file,state)
+        over=1.+over_mean/200
+        extract_and_save(file,state,algo,over)
     if state.last_run>0:
         p=state.p
         t=state.t
@@ -105,8 +110,8 @@ if file is not None:
     #
     # state.last_run=last_run+1
 
-
-    slider = st.slider("Figura", max_value=(len(p.images) - 1))
-    st.image(prepare_img(p,slider))
+    if len(p.images)>0:
+        slider = st.slider("Figura", max_value=(len(p.images) - 1))
+        st.image(prepare_img(p,slider),width=700,caption=d[slider])
 
 
