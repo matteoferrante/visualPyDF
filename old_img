@@ -1,0 +1,123 @@
+    ### OLD IMAGES
+
+
+    def recoverpix(self,doc, item):
+        """
+        Helper Function to extract images
+        Parameters:
+        -------------
+        doc: pdf document
+        item:   image in that page
+        """
+
+        x = item[0]  # xref of PDF image
+        s = item[1]  # xref of its /SMask
+        if s == 0:  # no smask: use direct image output
+            return doc.extractImage(x)
+
+        def getimage(pix):
+            if pix.colorspace.n != 4:
+                return pix
+            tpix = fitz.Pixmap(fitz.csRGB, pix)
+            return tpix
+
+        # we need to reconstruct the alpha channel with the smask
+        pix1 = fitz.Pixmap(doc, x)
+        pix2 = fitz.Pixmap(doc, s)  # create pixmap of the /SMask entry
+
+        """Sanity check:
+        - both pixmaps must have the same rectangle
+        - both pixmaps must not have alpha
+        - pix2 must consist of 1 byte per pixel
+        """
+        if not (pix1.irect == pix2.irect and pix1.alpha == pix2.alpha == 0 and pix2.n == 1):
+            pix2 = None
+            print("Warning: unsupported /SMask %i for %i." % (s, x))
+            return getimage(pix1)
+
+        pix = fitz.Pixmap(pix1)  # copy of pix1, with an alpha channel added
+        pix.setAlpha(pix2.samples)  # treat pix2.samples as the alpha values
+        pix1 = pix2 = None  # free temp pixmaps
+
+        # we may need to adjust something for CMYK pixmaps here:
+        return getimage(pix)
+
+
+
+
+
+    def extract_img(self,output_dir=None):
+        """
+        Function to extract Images
+
+        Paramters:
+        ------------
+        output_dir: path to save images, if doesn't exist it will be created, default pdf name +"_images"
+
+        """
+
+
+
+        if output_dir is None:
+            output_dir="images"
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+
+        dimlimit = 0  # 100  # each image side must be greater than this
+        relsize = 0  # 0.05  # image : pixmap size ratio must be larger than this (5%)
+        abssize = 0  # 2048  # absolute image size limit 2 KB: ignore if smaller
+
+        print(f"[INFO] images will be save into {output_dir}")
+
+        t0 = time.time()
+        doc = fitz.open(self.pdf)
+
+        page_count = len(doc)  # number of pages
+
+        xreflist = []
+        imglist = []
+        for pno in range(page_count):
+            #sg.QuickMeter( "Extract Images",  pno + 1,page_count,"*** Scanning Pages ***",)
+
+            il = doc.getPageImageList(pno)
+            imglist.extend([x[0] for x in il])
+            for img in il:
+                xref = img[0]
+                if xref in xreflist:
+                    continue
+                width = img[2]
+                height = img[3]
+                if min(width, height) <= dimlimit:
+                    continue
+                pix = self.recoverpix(doc, img)
+                if type(pix) is dict:  # we got a raw image
+                    ext = pix["ext"]
+                    imgdata = pix["image"]
+                    n = pix["colorspace"]
+                    imgfile = os.path.join(output_dir, "img-%i.%s" % (xref, ext))
+                else:  # we got a pixmap
+                    imgfile = os.path.join(output_dir, "img-%i.png" % xref)
+                    if pix.colorspace.name not in (fitz.csGRAY.name, fitz.csRGB.name):
+                        pix = fitz.Pixmap(fitz.csRGB, pix)
+                    imgdata = pix.getPNGData()
+
+                if len(imgdata) <= abssize:
+                    continue
+
+                fout = open(imgfile, "wb")
+                fout.write(imgdata)
+                fout.close()
+                xreflist.append(xref)
+
+        t1 = time.time()
+        imglist = list(set(imglist))
+        self.nimages=len(set(imglist))
+        print( f"[INFO] {len(set(imglist))} images in total")
+        print( f"[INFO] {len(xreflist)} images extracted")
+        print(f"[INFO] total time {t1 - t0} sec" )
+        warnings = fitz.TOOLS.mupdf_warnings()
+        if warnings:
+            print()
+            print("[WARNING] The following warnings have been issued:")
+            print("----------------------------------------")
+            print(warnings)
