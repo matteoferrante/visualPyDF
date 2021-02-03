@@ -76,7 +76,7 @@ algo=st.sidebar.selectbox("Algorithm",("td_idf","abstractive"))
 if file is not None:
 
     if run_btn:
-        over=1.+over_mean/200
+        over=1.+over_mean/100
         extract_and_save(file,state,algo,over)
     if state.last_run>0:
         p=state.p
