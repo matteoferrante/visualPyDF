@@ -12,6 +12,7 @@ import networkx as nx
 
 nltk.download('punkt')
 nltk.download('stopwords')
+nltk.download('wordnet')
 
 
 class TextResume:
