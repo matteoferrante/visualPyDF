@@ -86,34 +86,25 @@ if file is not None:
         freq=state.freq
         wordcloud=state.wordcloud
 
-    st.info(f"[INFO] original text length: {len(t)} \t\t summary length:{len(s)}")
-    st.write(freq)
-    st.write(wordcloud)
+    try:
+        st.info(f"[INFO] original text length: {len(t)} \t\t summary length:{len(s)}")
+        st.write(freq)
+        st.write(wordcloud)
 
-    to=TextOutputFormatter.TextOutputFormatter(s)
-    s=to.prettify()
-    st.markdown(f"<p align='justify'>{s}</p>", unsafe_allow_html=True)
-    st.info(f"{len(p.images)} images found with {len(d)} captions")
-    # p = PDFExtractor(file)
-    #
-    # [t, d] = p.extract_fine()
-    # img_dir = "images"
-    # state.t = t
-    # state.d = d
-    #
-    # s = work_on_text(t, img_dir)
-    # state.s = s
-    # state.p = p
-    # st.info(f"[LAST RUN] {last_run}")
-    # st.info(f"[INFO] original text length: {len(t)} \t\t summary length:{len(s)}")
-    # st.markdown(f"<p align='justify'>{s}</p>", unsafe_allow_html=True)
-    # st.info(f"{len(p.images)} images found")
+        to=TextOutputFormatter.TextOutputFormatter(s)
+        s=to.prettify()
+        st.markdown(f"<p align='justify'>{s}</p>", unsafe_allow_html=True)
+        st.info(f"{len(p.images)} images found with {len(d)} captions")
 
-    #
-    # state.last_run=last_run+1
+    except:
+        st.info("[INFO] Click on RUN to start the analysis")
+
+
 
     if len(p.images)>0:
-        slider = st.slider("Figura", max_value=(len(p.images) - 1))
-        st.image(prepare_img(p,slider),width=700,caption=d[slider])
+        st.image(prepare_img(p, p.images[0]), width=700, caption=d[0])
+        if len(p.images)>1:
+            slider = st.slider("Figura", max_value=(len(p.images) - 1))
+            st.image(prepare_img(p,slider),width=700,caption=d[slider])
 
 
