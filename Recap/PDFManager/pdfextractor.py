@@ -12,11 +12,6 @@ from io import StringIO
 from random import randint
 #regular expression
 import re
-# images handling
-import fitz
-import os, sys, time
-import fitz
-import PySimpleGUI as sg
 #colored terminal
 from termcolor import colored
 
