@@ -102,9 +102,10 @@ if file is not None:
 
 
     if len(p.images)>0:
-        st.image(prepare_img(p, p.images[0]), width=700, caption=d[0])
+
         if len(p.images)>1:
             slider = st.slider("Figura", max_value=(len(p.images) - 1))
             st.image(prepare_img(p,slider),width=700,caption=d[slider])
 
-
+        else:
+            st.image(prepare_img(p, 0), width=700, caption=d[0])
