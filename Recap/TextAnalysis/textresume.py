@@ -3,6 +3,7 @@ from termcolor import colored
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+import nltk
 import pandas as pd
 import numpy as np
 import progressbar
