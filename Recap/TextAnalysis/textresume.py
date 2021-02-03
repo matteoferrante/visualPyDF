@@ -11,6 +11,8 @@ from nltk.cluster.util import cosine_distance
 import networkx as nx
 
 nltk.download('punkt')
+nltk.download('stopwords')
+
 
 class TextResume:
     def __init__(self,text,method):
