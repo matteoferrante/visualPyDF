@@ -10,6 +10,8 @@ import progressbar
 from nltk.cluster.util import cosine_distance
 import networkx as nx
 
+nltk.download('punkt')
+
 class TextResume:
     def __init__(self,text,method):
         """
