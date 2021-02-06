@@ -15,6 +15,10 @@ import re
 #colored terminal
 from termcolor import colored
 
+import pandas as pd
+from io import BytesIO
+import pdfplumber
+
 
 from binascii import b2a_hex
 
@@ -256,3 +260,19 @@ class PDFExtractor:
         return result,file_obj,filedata
 
 
+    def extract_tables(self):
+
+        data=[]
+        raw_table=[]
+        with pdfplumber.load(self.pdf) as pdf:
+            pages = pdf.pages
+            for p in pages:
+                tbl=p.extract_tables()
+                raw_table.append(tbl)
+                #data.append(pd.DataFrame(tbl))
+                if len(tbl):
+                    column_names = tbl[0].pop(0)
+                    df = pd.DataFrame(tbl[0], columns=column_names)
+                    data.append(df)
+        self.tables=data
+        return data

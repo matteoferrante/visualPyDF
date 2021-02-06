@@ -1,16 +1,29 @@
 # encoding: utf-8
 
 import io
-
+import traceback
 import streamlit as st
 
 from Recap.PDFManager import PDFExtractor
 from Recap.TextAnalysis import TextStatistics, TextResume
 from Recap.TextAnalysis import TextOutputFormatter
-
+import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
 from util.refresh_state import _get_state
+
+
+page_bg_img = '''
+<style>
+body {
+background-image: url("https://www.alfagroup.it/wp-content/uploads/2019/05/Background-connection.png");
+background-size: cover;
+}
+</style>
+'''
+
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
 
 def work_on_text(t,output,algorhitm="td_idf",overmean=1.25):
     ts = TextStatistics(t)
@@ -40,6 +53,10 @@ def extract_and_save(file,state,method,over_mean):
 
     [t, d] = p.extract_fine()
     img_dir = "images"
+
+    #tables
+    df=p.extract_tables()
+
     state.t = t
     state.d = d
 
@@ -50,6 +67,8 @@ def extract_and_save(file,state,method,over_mean):
     state.freq=fig
     state.wordcloud=wordcloud
     state.last_run=last_run+1
+
+
 
 def prepare_img(p,slider):
     img, data = p.raw2img(slider)
@@ -99,17 +118,48 @@ if file is not None:
     except:
         st.info("[INFO] Click on RUN to start the analysis")
 
+    ##tables
 
 
-    if len(p.images)>0:
 
-        if len(p.images)>1:
-            slider = st.slider("Figura", max_value=(len(p.images) - 1))
-            st.image(prepare_img(p,slider),width=700)
-            if len(d)>=slider:
-                st.write(f"[CAPTION] {d[slider]}")
+    try:
 
-        else:
-            st.image(prepare_img(p, 0), width=700)
-            if len(d):
-                st.write(f"[CAPTION] {d[0]}")
+        if len(p.tables):
+
+            if len(p.tables)>1:
+                print(f"[INFO] found {len(p.tables)} tables")
+                st.info(f"[INFO] found {len(p.tables)} tables ")
+                table_slider = st.slider("Table", max_value=(len(p.tables) - 1),key="table")
+
+                #df=pd.DataFrame(p.rawtables[table_slider],columns=p.rawtables[table_slider][0])
+                #st.write(f"{p.rawtables[table_slider]}")
+                st.write(p.tables[table_slider])
+            else:
+                print(f"[INFO] found {len(p.tables)} table")
+                st.info(f"[INFO] found {len(p.tables)} table")
+
+                st.write(p.tables[0])
+    except:
+        traceback.print_exc()
+        print(f"[INFO] No tables found")
+        st.info(f"[INFO] No tables found")
+
+    #images
+
+    try:
+        if len(p.images)>0:
+
+            if len(p.images)>1:
+                slider = st.slider("Figura", max_value=(len(p.images) - 1))
+                st.image(prepare_img(p,slider),width=700)
+                if len(d)>=slider:
+                    st.write(f"[CAPTION] {d[slider]}")
+
+            else:
+                st.image(prepare_img(p, 0), width=700)
+                if len(d):
+                    st.write(f"[CAPTION] {d[0]}")
+    except:
+        pass
+
+
